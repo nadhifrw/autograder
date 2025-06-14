@@ -11,7 +11,7 @@ def check_files_in_folder(path):
                     file_path = os.path.join(root, file)
                     all_files.append(file_path)
                     # print(f"{file} exists.")
-                    print(f"File found: {file_path}")
+                    # print(f"File found: {file_path}")
         return all_files
     else:
         print(f"Path does not exist: {path}")
