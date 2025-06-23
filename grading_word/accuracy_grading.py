@@ -5,6 +5,57 @@ from docx import Document
 from grading_word.finding_docx import find_docs
 
 
+def checking_image(path):
+    docx_list = find_docs(path)
+    has_image = []
+    image_scores = {}  # Initialize image score
+    for docx in docx_list:
+        filename = os.path.basename(docx)
+        doc = Document(docx)
+        header = doc.sections[0].header
+
+        found_image = False
+        score = 0  # Initialize score for this document
+
+        if len(header.tables) > 0:
+            print(f"Header table found in {filename}")
+            for table in header.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        if (
+                            "graphic" in cell._element.xml
+                            and "pic" in cell._element.xml
+                        ):
+                            print(f"Image found in header table of {filename}")
+                            has_image.append(filename)
+                            score += 5
+                            found_image = True
+                            break
+                    if found_image:
+                        break
+                if found_image:
+                    break
+
+        # Always check paragraphs, not just in else clause
+        if not found_image:
+            for paragraph in header.paragraphs:
+                for run in paragraph.runs:
+                    if "graphic" in run._element.xml and "pic" in run._element.xml:
+                        print(f"Image found in header of {filename}")
+                        has_image.append(filename)
+                        found_image = True
+                        score += 5
+                        break
+                if found_image:
+                    break
+
+        image_scores[filename] = score
+
+    print(has_image)  # Print the list for debugging
+
+    return image_scores  # Return dictionary for calculate_total_scores
+
+
 # Checking if there is header inside the docx
 # alse making sure that the header contains the required text
 def header_info(path):
@@ -148,6 +199,7 @@ def signature_info(path):
 
 def calculate_total_scores(path):
     """Calculate total scores for all documents"""
+    image_score = checking_image(path)  # This will print the images found
     header_scores = header_info(path)
     body_scores = body_info(path)
     signature_scores = signature_info(path)
@@ -156,18 +208,20 @@ def calculate_total_scores(path):
 
     # Get all unique filenames
     all_files = (
-        set(header_scores.keys())
+        set(image_score.keys())
+        | set(header_scores.keys())
         | set(body_scores.keys())
         | set(signature_scores.keys())
     )
 
     for filename in all_files:
         total = (
-            header_scores.get(filename, 0)
+            image_score.get(filename, 0)
+            + header_scores.get(filename, 0)
             + body_scores.get(filename, 0)
             + signature_scores.get(filename, 0)
         )
         total_scores[filename] = total
-        print(f"📄 {filename} — Total Score: {total}")
+        # print(f"📄 {filename} — Total Score: {total}")
 
     return total_scores
