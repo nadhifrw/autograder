@@ -51,7 +51,7 @@ def checking_image(path):
 
         image_scores[filename] = score
 
-    print(has_image)  # Print the list for debugging
+    # print(has_image)  # Print the list for debugging
 
     return image_scores  # Return dictionary for calculate_total_scores
 
@@ -82,6 +82,7 @@ def header_info(path):
 
             if second_header_text.strip():
                 print(f"Second header found in {filename}: {second_header_text}")
+                score -= 5
 
         # Get all text from header paragraphs
         header_text = ""
@@ -98,11 +99,12 @@ def header_info(path):
             # print(f"Header found in {filename}: {header_text.lower()}")
             if (
                 "universitas islam negeri sunan kalijaga" in header_text.lower()
-                or "pusat teknologi informasi dan pangkalan data" in header_text.lower()
+                and "pusat teknologi informasi dan pangkalan data"
+                in header_text.lower()
             ):
                 # print(f"Header contains required text: {header_text}")
-                print(f"✅ Header contains required text in {filename}")
-                score += 5
+                # print(f"✅ Header contains required text in {filename}")
+                score += 10
             else:
                 print(f"Header does not contain required text: {filename}")
         else:
@@ -197,12 +199,67 @@ def signature_info(path):
     return signature_score
 
 
+def table_info(path):
+    docx_list = find_docs(path)
+    table_score = {}
+    for docx in docx_list:
+        filename = os.path.basename(docx)
+        doc = Document(docx)
+
+        score = 0
+
+        # # Check if there are tables in the document
+        # if len(doc.tables) > 0:
+        #     print(f"Table found in {filename}")
+        #     score += 5  # Increment score for having a table
+        #
+        #     # Check if the table has at least one row and one cell
+        #     for table in doc.tables:
+        #         if len(table.rows) > 0 and len(table.rows[0].cells) > 0:
+        #             print(f"Table in {filename} has rows and cells")
+        #             score += 5  # Increment score for valid table structure
+
+        table_text = []
+        # Check if there are tables in the Document
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    # table_text += cell.text + " "
+                    table_text.append(cell.text.strip())
+
+        # print(f"Table text in {filename}: {table_text.strip()}")
+        print(f"Table text in {filename}: {table_text}")
+
+        # TODO: add some conditions to check and score on the table
+
+        # table_text_lower = table_text.lower()
+
+        # senin, 11 juni 2018 10.00 s.d 12.00 pembukaan dan sambutan-sambutan
+        # senin, 11 juni 2018 12.00 s.d 13.00 istirahat dan makan siang
+        # senin, 11 juni 2018 13.00 s.d 16.00 materi pengantar tik
+        # selasa, 12 juni 2018 09.00 s.d 12.00 internet browsing dan email
+        # selasa, 12 juni 2018 12.00 s.d 13.00 istirahat dan makan siang
+        # selasa, 12 juni 2018 13.00 s.d 16.00 mengelola konten web
+        # rabu, 13 juni 2018 09.00 s.d 12.00 membuat desain banner untuk web
+        # rabu, 13 juni 2018 12.00 s.d 13.00 istirahat dan makan siang
+        # rabu, 13 juni 2018 13.00 s.d 16.00 evaluasi
+
+        # if "pembukaan dan sambutan-sambutan" in table_text:
+        #     print(f"✅ Found required text in table of {filename}")
+        #     score += 5
+
+        table_score[filename] = score
+
+    return table_score
+
+
 def calculate_total_scores(path):
     """Calculate total scores for all documents"""
     image_score = checking_image(path)  # This will print the images found
     header_scores = header_info(path)
     body_scores = body_info(path)
     signature_scores = signature_info(path)
+    table_scores = table_info(path)
 
     total_scores = {}
 
@@ -212,6 +269,7 @@ def calculate_total_scores(path):
         | set(header_scores.keys())
         | set(body_scores.keys())
         | set(signature_scores.keys())
+        | set(table_scores.keys())
     )
 
     for filename in all_files:
@@ -220,6 +278,7 @@ def calculate_total_scores(path):
             + header_scores.get(filename, 0)
             + body_scores.get(filename, 0)
             + signature_scores.get(filename, 0)
+            + table_scores.get(filename, 0)
         )
         total_scores[filename] = total
         # print(f"📄 {filename} — Total Score: {total}")
