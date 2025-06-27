@@ -10,6 +10,8 @@ def checking_image(path):
     has_image = []
     image_scores = {}  # Initialize image score
     for docx in docx_list:
+        dirname = os.path.basename(os.path.dirname(docx))
+
         filename = os.path.basename(docx)
         doc = Document(docx)
         header = doc.sections[0].header
@@ -18,7 +20,7 @@ def checking_image(path):
         score = 0  # Initialize score for this document
 
         if len(header.tables) > 0:
-            print(f"Header table found in {filename}")
+            # print(f"Header table found in {filename}")
             for table in header.tables:
                 for row in table.rows:
                     for cell in row.cells:
@@ -49,7 +51,7 @@ def checking_image(path):
                 if found_image:
                     break
 
-        image_scores[filename] = score
+        image_scores[dirname] = score
 
     # print(has_image)  # Print the list for debugging
 
@@ -62,6 +64,8 @@ def header_info(path):
     docx_list = find_docs(path)
     header_score = {}
     for docx in docx_list:
+        dirname = os.path.basename(os.path.dirname(docx))
+
         filename = os.path.basename(docx)
         doc = Document(docx)
         header = doc.sections[0].header
@@ -81,7 +85,7 @@ def header_info(path):
                         second_header_text += cell.text.strip() + " "
 
             if second_header_text.strip():
-                print(f"Second header found in {filename}: {second_header_text}")
+                # print(f"Second header found in {filename}: {second_header_text}")
                 score -= 5
 
         # Get all text from header paragraphs
@@ -110,7 +114,7 @@ def header_info(path):
         else:
             print(f"Header is empty in {filename}")
 
-        header_score[filename] = score
+        header_score[dirname] = score
 
     return header_score
 
@@ -133,6 +137,8 @@ def body_info(path):
 
     for docx in docx_list:
         filename = os.path.basename(docx)
+        dirname = os.path.basename(os.path.dirname(docx))
+
         doc = Document(docx)
 
         body_text = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
@@ -140,14 +146,12 @@ def body_info(path):
 
         score = 0
 
-        # score_body = 0  # Initialize score for this document
-
         for phrase in required_phrases:
             if phrase in lower_body:
                 print(f"✅ Found required text in {filename}")
                 score += 5
 
-        body_score[filename] = score
+        body_score[dirname] = score
 
     return body_score
 
@@ -156,15 +160,12 @@ def signature_info(path):
     docx_list = find_docs(path)
     signature_score = {}
     for docx in docx_list:
-        filename = os.path.basename(docx)
+        # filename = os.path.basename(docx)
+        dirname = os.path.basename(os.path.dirname(docx))
+
         doc = Document(docx)
 
-        # body_text = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
-        # lower_body = body_text.lower()
-        #
         score = 0
-
-        # print(f"{body_text}")
 
         # Get all text from header paragraphs
         signature_text = ""
@@ -194,7 +195,7 @@ def signature_info(path):
         if "hormat kami" in signature_lower and "kepala ptipd" in signature_lower:
             score += 1  # assuming structure is formal enough
 
-        signature_score[filename] = score
+        signature_score[dirname] = score
 
     return signature_score
 
@@ -204,22 +205,14 @@ def table_info(path):
     table_score = {}
     for docx in docx_list:
         filename = os.path.basename(docx)
+        dirname = os.path.basename(os.path.dirname(docx))
+
         doc = Document(docx)
 
         score = 0
 
-        # # Check if there are tables in the document
-        # if len(doc.tables) > 0:
-        #     print(f"Table found in {filename}")
-        #     score += 5  # Increment score for having a table
-        #
-        #     # Check if the table has at least one row and one cell
-        #     for table in doc.tables:
-        #         if len(table.rows) > 0 and len(table.rows[0].cells) > 0:
-        #             print(f"Table in {filename} has rows and cells")
-        #             score += 5  # Increment score for valid table structure
-
         table_text = []
+        # table_text = ""
         # Check if there are tables in the Document
         for table in doc.tables:
             for row in table.rows:
@@ -227,35 +220,40 @@ def table_info(path):
                     # table_text += cell.text + " "
                     table_text.append(cell.text.strip())
 
-        # print(f"Table text in {filename}: {table_text.strip()}")
-        print(f"Table text in {filename}: {table_text}")
+        # lowercase the table text for easier matching
+        table_text_lower = [text.lower() for text in table_text]
 
-        # TODO: add some conditions to check and score on the table
+        # if needed to debug the table text
+        print(f"Table text in {filename}: {table_text_lower}")
 
-        # table_text_lower = table_text.lower()
+        if "pembukaan dan sambutan-sambutan" in table_text_lower:
+            print(f"✅ Found required text in table of {filename}")
+            score += 5
+        if "istirahat dan makan siang" in table_text_lower:
+            print(f"✅ Found required text in table of {filename}")
+            score += 5
+        if "materi pengantar tik" in table_text_lower:
+            print(f"✅ Found required text in table of {filename}")
+            score += 5
+        if "internet browsing dan email" in table_text_lower:
+            print(f"✅ Found required text in table of {filename}")
+            score += 5
+        if "mengelola konten web" in table_text_lower:
+            print(f"✅ Found required text in table of {filename}")
+            score += 5
+        if "membuat desain banner untuk web" in table_text_lower:
+            print(f"✅ Found required text in table of {filename}")
+            score += 5
 
-        # senin, 11 juni 2018 10.00 s.d 12.00 pembukaan dan sambutan-sambutan
-        # senin, 11 juni 2018 12.00 s.d 13.00 istirahat dan makan siang
-        # senin, 11 juni 2018 13.00 s.d 16.00 materi pengantar tik
-        # selasa, 12 juni 2018 09.00 s.d 12.00 internet browsing dan email
-        # selasa, 12 juni 2018 12.00 s.d 13.00 istirahat dan makan siang
-        # selasa, 12 juni 2018 13.00 s.d 16.00 mengelola konten web
-        # rabu, 13 juni 2018 09.00 s.d 12.00 membuat desain banner untuk web
-        # rabu, 13 juni 2018 12.00 s.d 13.00 istirahat dan makan siang
-        # rabu, 13 juni 2018 13.00 s.d 16.00 evaluasi
-
-        # if "pembukaan dan sambutan-sambutan" in table_text:
-        #     print(f"✅ Found required text in table of {filename}")
-        #     score += 5
-
-        table_score[filename] = score
+        table_score[dirname] = score
 
     return table_score
 
 
+# Grading function to calculate accuracy  score for all documents
 def calculate_total_scores(path):
     """Calculate total scores for all documents"""
-    image_score = checking_image(path)  # This will print the images found
+    image_score = checking_image(path)
     header_scores = header_info(path)
     body_scores = body_info(path)
     signature_scores = signature_info(path)
@@ -272,15 +270,15 @@ def calculate_total_scores(path):
         | set(table_scores.keys())
     )
 
-    for filename in all_files:
+    for dirname in all_files:
         total = (
-            image_score.get(filename, 0)
-            + header_scores.get(filename, 0)
-            + body_scores.get(filename, 0)
-            + signature_scores.get(filename, 0)
-            + table_scores.get(filename, 0)
+            image_score.get(dirname, 0)
+            + header_scores.get(dirname, 0)
+            + body_scores.get(dirname, 0)
+            + signature_scores.get(dirname, 0)
+            + table_scores.get(dirname, 0)
         )
-        total_scores[filename] = total
+        total_scores[dirname] = total
         # print(f"📄 {filename} — Total Score: {total}")
 
     return total_scores

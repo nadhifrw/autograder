@@ -1,5 +1,3 @@
-import os
-
 from checking_folder.checking_files import check_files_in_folder
 
 
@@ -12,11 +10,11 @@ def find_docs(path):
         docx_files = [
             f for f in files if f.endswith(".docx") and "word" in f.lower() and "-" in f
         ]
-        for file in docx_files:
-            filename = os.path.basename(file)
-            print(f"file: {filename}")
+        # for file in docx_files:
+        #     filename = os.path.basename(file)
+        #     print(f"file: {filename}")
 
-        print(f"Found {len(docx_files)} Word documents in the directory.")
+        # print(f"Found {len(docx_files)} Word documents in the directory.")
         return docx_files
     else:
         print("Invalid path or not a Word document.")

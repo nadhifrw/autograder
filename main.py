@@ -7,10 +7,11 @@ from grading_word.finding_docx import find_docs
 from scoring_point import add_accuracy_scores  # If you created this file
 
 # from grading_word.formatting_grading import calculate_total_scores_formatting
-
 # from grading_word.formatting_grading import bold_text
+# from grading_word.formatting_grading import find_pdf
 
 
+# TODO: make the grading for other file types like pptx, xlsx, etc
 def main():
     path = "/Users/yolashaniaanggita/Documents/test_files"
     check_files_in_folder(path)
@@ -21,6 +22,8 @@ def main():
     # bold_text(path)
     # table_info(path)
     # total_scores = calculate_total_scores_formatting(path)
+
+    # find_pdf(path)
 
     total_scores = add_accuracy_scores(path)
 
